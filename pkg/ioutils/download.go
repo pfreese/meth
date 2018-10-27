@@ -1,9 +1,11 @@
 package ioutils
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 )
 
 
@@ -32,4 +34,16 @@ func DownloadFile(url, localFile string) error {
 	}
 
 	return nil
+}
+
+
+func GetExecutable(program string) (string, error) {
+	path, err := exec.LookPath(program)
+	fmt.Println(path)
+	return path, err
+}
+
+func downloadbigWigToWig(config Configuration) {
+	path := "a"
+	fmt.Println(path)
 }
