@@ -30,6 +30,10 @@ func parseGTF() {
 	if err != nil {
 		fmt.Print(err.Error())
 	}
+	err = gtf.ParseGTF(config.GTF)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
 }
 
 func main() {
