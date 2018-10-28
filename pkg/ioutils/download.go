@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 )
 
 
@@ -37,13 +38,43 @@ func DownloadFile(url, localFile string) error {
 }
 
 
+// DownloadCommandLinePrograms checks for downloads (if does not yet exist on
+// $PATH): bigWigToWig
+func DownloadCommandLinePrograms(config *Configuration) error {
+	// *********************** bigWigToWig *************************
+	p, _ := GetExecutable("bigWigToWig")
+	if p == "" {
+		err := downloadbigWigToWig(config)
+		if err != nil {
+			return err
+		}
+	} else {
+		config.bigWigToWig = p
+	}
+	return nil
+}
+
+
 func GetExecutable(program string) (string, error) {
 	path, err := exec.LookPath(program)
-	fmt.Println(path)
 	return path, err
 }
 
-func downloadbigWigToWig(config Configuration) {
-	path := "a"
-	fmt.Println(path)
+func downloadbigWigToWig(config *Configuration) error {
+	var sourcePath string
+	if config.OS == "darwin" {
+		sourcePath = "http://hgdownload.cse.ucsc.edu/admin/exe/macOSX.x86_64/bigWigToWig"
+	} else {
+		sourcePath = "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/bigWigToWig"
+	}
+
+	outPath := path.Join(config.SoftwareDownloadDIR, "bigWigToWig")
+	DownloadFile(sourcePath, outPath)
+	fmt.Println(outPath)
+	err := os.Chmod(outPath, 0777)
+	if err != nil {
+		return err
+	}
+	config.bigWigToWig = outPath
+	return nil
 }

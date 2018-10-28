@@ -15,9 +15,10 @@ type Configuration struct {
 	DataDIR    string
 	SoftwareDownloadDIR    string
 	OS 	string
+	bigWigToWig string
 }
 
-func ParseJSON(jsonF string) Configuration {
+func ParseMeJSON(jsonF string) Configuration {
 	file, _ := os.Open(jsonF)
 	defer file.Close()
 	decoder := json.NewDecoder(file)
@@ -64,7 +65,7 @@ func checkJSON(config Configuration) error {
 }
 
 func ProcessJSON(jsonF string) (Configuration, error) {
-	config := ParseJSON(jsonF)
+	config := ParseMeJSON(jsonF)
 	fmt.Println(config)
 	cleanConfig(&config)
 

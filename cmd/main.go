@@ -2,27 +2,38 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/pfreese/meth/pkg/gtf"
 	"github.com/pfreese/meth/pkg/ioutils"
-	"runtime"
 )
 
-func main() {
-
-	/*
-	fileUrl := "http://hgdownload.cse.ucsc.edu/admin/exe/macOSX.x86_64/bigWigToWig"
-
-	err := ioutils.DownloadFile(fileUrl,"/Users/pfreese/Downloads/bigWigToWigGG")
-	if err != nil {
-		panic(err)
-	}
-	*/
-
+func parseJSON() {
 	// Parse the json file
 	config, err := ioutils.ProcessJSON("../configs/setup.json")
 	if err != nil {
 		fmt.Print(err.Error())
 	}
-	fmt.Println(config)
 
-	ioutils.GetExecutable("bigWigToWig")
+	// Get paths for
+	ioutils.DownloadCommandLinePrograms(&config)
+
+	fmt.Println(config)
+}
+
+
+func parseGTF() {
+	config, err := gtf.ProcessGTFjson("../configs/hg38.gtf.json")
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+	err = gtf.DownloadGTF(&config)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+}
+
+func main() {
+
+	//parseJSON()
+	parseGTF()
 }
