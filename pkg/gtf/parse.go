@@ -1,3 +1,4 @@
+// Package gtf parses a .gtf file for genes and transcripts.
 package gtf
 
 import (
@@ -12,33 +13,35 @@ import (
 )
 
 type Transcript struct {
-	chrom    string
-	lower	int
-	upper	int
-	strand	string
-	geneID	string
-	transcriptID	string
-	transcriptType	string
+	Chrom    string
+	// Lower/Upper are 5'/3' ends, respectively, for + strand transcripts; opposite for - strand transcripts
+	Lower	int
+	Upper	int
+	Strand	string // "+" or "-"
+	GeneID	string // "ENSG00000239906.1"
+	TranscriptID	string // "ENST00000493797.1"
+	TranscriptType	string
 }
 
 type Gene struct {
-	chrom    string
-	lower	int
-	upper	int
-	strand	string
-	geneID	string
-	geneType	string
-	transcripts	[]string
+	Chrom    string
+	// Lower/Upper are 5'/3' ends, respectively, for + strand genes; opposite for - strand genes
+	Lower	int
+	Upper	int
+	Strand	string // "+" or "-"
+	GeneID	string // "ENSG00000239906.1"
+	GeneType	string
+	Transcripts	[]string // populated with TranscriptID values
 }
 
+// AddTrans adds a transcript's ID to its host gene's slice of transcripts
 func (gene *Gene) AddTrans(transcript Transcript) []string {
-	gene.transcripts = append(gene.transcripts, transcript.transcriptID)
-	return gene.transcripts
+	gene.Transcripts = append(gene.Transcripts, transcript.TranscriptID)
+	return gene.Transcripts
 }
 
-// ParseGTF parses the
-// 60725 genes
-// 199,348 transcripts
+// ParseGTF parses the .gtf file and returns maps of the genes & transcripts.
+// For the GRCh38 .gtf, there are: 60725 genes & 199,348 transcripts.
 func ParseGTF(gtfPath string) error {
 	csvFile, _ := os.Open(gtfPath)
 	reader := csv.NewReader(bufio.NewReader(csvFile))
@@ -46,7 +49,8 @@ func ParseGTF(gtfPath string) error {
 	reader.Comma = '\t'
 	nGenes := 0
 	nTrans := 0
-	genes := make(map[string]Gene)
+	genesInfo := make(map[string]*Gene)
+	transInfo := make(map[string]*Transcript)
 	for lineNum := 1; ; lineNum++ {
 		line, error := reader.Read()
 		if error == io.EOF {
@@ -67,25 +71,18 @@ func ParseGTF(gtfPath string) error {
 		if line[2] == "gene" {
 			nGenes += 1
 			gene := parseGeneLine(line)
-			genes[gene.geneID] = gene
-			fmt.Println("geenezzz")
+			genesInfo[gene.GeneID] = &gene
 		} else if line[2] == "transcript" {
 			nTrans += 1
 			trans := parseTransLine(line)
-			fmt.Println(trans)
-			// Add this transcript to its gene
-			transGene := genes[trans.geneID]
-			fmt.Println("BEFOREEEEEE")
-			fmt.Println(transGene)
-			transGene.AddTrans(trans)
-			//genes[trans.geneID].AddTrans(trans)
-			fmt.Println(transGene)
-			genes[trans.geneID] = transGene
+			transInfo[trans.TranscriptID] = &trans
+			genesInfo[trans.GeneID].AddTrans(trans)
 		}
 	}
 	fmt.Println(nGenes, "genes")
 	fmt.Println(nTrans, "transcripts")
-	fmt.Println(genes)
+	fmt.Println(genesInfo)
+	fmt.Println(*genesInfo["ENSG00000223972.5"])
 	return nil
 }
 
@@ -128,32 +125,32 @@ func parseTransLine(line []string) Transcript {
 	upper, _ := strconv.Atoi(line[4])
 	annots := parseAnnotField(line[8])
 	trans := Transcript{
-		chrom:        line[0],
-		lower:        lower,
-		upper:        upper,
-		strand:       line[6],
-		geneID:       annots["gene_id"],
-		transcriptID: annots["transcript_id"],
-		transcriptType: annots["transcript_type"],
+		Chrom:        line[0],
+		Lower:        lower,
+		Upper:        upper,
+		Strand:       line[6],
+		GeneID:       annots["gene_id"],
+		TranscriptID: annots["transcript_id"],
+		TranscriptType: annots["transcript_type"],
 	}
 	return trans
 }
 
 
 
-// parseGeneLine parses a line corresponding to a gene:
+// parseGeneLine parses a line corresponding to a gene.
 // [chr1 HAVANA gene 139790 140339 . - . gene_id "ENSG00000239906.1"; gene_type "antisense"; gene_status "KNOWN"; gene_name "RP11-34P13.14"; level 2; havana_gene "OTTHUMG00000002481.1";]
 func parseGeneLine(line []string) Gene {
 	lower, _ := strconv.Atoi(line[3])
 	upper, _ := strconv.Atoi(line[4])
 	annots := parseAnnotField(line[8])
 	gene := Gene{
-		chrom:        line[0],
-		lower:        lower,
-		upper:        upper,
-		strand:       line[6],
-		geneID:       annots["gene_id"],
-		transcripts: []string{},
+		Chrom:        line[0],
+		Lower:        lower,
+		Upper:        upper,
+		Strand:       line[6],
+		GeneID:       annots["gene_id"],
+		Transcripts: []string{},
 	}
 	return gene
 }

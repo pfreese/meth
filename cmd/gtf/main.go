@@ -36,8 +36,17 @@ func parseGTF() {
 	}
 }
 
+func readStream() {
+	url := "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.tRNAs.gff3.gz"
+	err := ioutils.ReadStreamFile(url)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+}
+
 func main() {
 
 	//parseJSON()
-	parseGTF()
+	//parseGTF()
+	readStream()
 }

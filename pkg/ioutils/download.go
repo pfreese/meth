@@ -38,6 +38,20 @@ func DownloadFile(url, localFile string) error {
 }
 
 
+func ReadStreamFile(url string) error {
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	fmt.Sprintf("%v", resp.Body)
+
+	return nil
+}
+
+
 // DownloadCommandLinePrograms checks for downloads (if does not yet exist on
 // $PATH): bigWigToWig
 func DownloadCommandLinePrograms(config *Configuration) error {
